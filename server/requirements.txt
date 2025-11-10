@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pydantic
+databases[sqlite]
+aiosqlite
+python-multipart
+openpyxl

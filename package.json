@@ -1,0 +1,15 @@
+{
+  "name": "vinted-analyzer",
+  "version": "1.0.0",
+  "description": "An app to analyze Vinted sales",
+  "scripts": {
+    "start": "concurrently \"uvicorn server.main:app --reload\" \"npm start --prefix client\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analiza Sprzedaży Vinted</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        h1, h2 { text-align: center; }
+        form { display: flex; flex-direction: column; max-width: 500px; margin: 0 auto 2em; }
+        form input, form button { margin-bottom: 1em; padding: 0.5em; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Analiza Sprzedaży Vinted</h1>
+    <h2>Dodaj nowy przedmiot</h2>
+    <form id="addItemForm">
+        <input type="text" id="name" placeholder="Nazwa przedmiotu" required>
+        <input type="number" id="purchase_price" placeholder="Cena zakupu" step="0.01" required>
+        <input type="number" id="sell_price" placeholder="Cena sprzedaży" step="0.01" required>
+        <input type="date" id="sell_date" required>
+        <input type="text" id="category" placeholder="Kategoria" required>
+        <button type="submit">Dodaj przedmiot</button>
+    </form>
+
+    <h2>Sprzedane przedmioty</h2>
+    <table id="itemsTable">
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Cena zakupu</th>
+                <th>Cena sprzedaży</th>
+                <th>Zysk</th>
+                <th>Data sprzedaży</th>
+                <th>Kategoria</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dane zostaną wstawione tutaj przez JavaScript -->
+        </tbody>
+    </table>
+
+    <script src="app.js"></script>
+</body>
+</html>
