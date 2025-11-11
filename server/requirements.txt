@@ -5,3 +5,5 @@ databases[sqlite]
 aiosqlite
 python-multipart
 openpyxl
+google-generativeai
+python-dotenv
