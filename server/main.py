@@ -135,11 +135,19 @@ async def edit_item(item_id: int, item: ItemEdit):
 class ProfitByCategory(BaseModel):
     category: str
     total_profit: float
+    items_sold: int
+    total_revenue: float
+    average_profit: float
 
 @app.get("/api/analysis", response_model=List[ProfitByCategory])
 async def get_analysis():
     query = """
-        SELECT category, SUM(sell_price - purchase_price) as total_profit
+        SELECT 
+            category, 
+            SUM(sell_price - purchase_price) as total_profit,
+            COUNT(id) as items_sold,
+            SUM(sell_price) as total_revenue,
+            AVG(sell_price - purchase_price) as average_profit
         FROM items
         WHERE status = 'sold'
         GROUP BY category
