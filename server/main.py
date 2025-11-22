@@ -10,6 +10,8 @@ import google.generativeai as genai
 import os
 import json
 from dotenv import load_dotenv
+from openai import OpenAI
+import base64
 
 # Explicitly load .env file from the same directory as main.py
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -23,6 +25,17 @@ if not api_key:
     )
 
 genai.configure(api_key=api_key)
+
+try:
+    with open(os.path.join(os.path.dirname(__file__), 'openai_api_key.txt'), 'r') as f:
+        openai_api_key = f.read().strip()
+except FileNotFoundError:
+    raise RuntimeError(
+        "openai_api_key.txt not found. Please ensure the file exists in the /server directory "
+        "with your OpenAI API key."
+    )
+
+client = OpenAI(api_key=openai_api_key)
 
 DATABASE_URL = "sqlite:///./vinted.db"
 database = Database(DATABASE_URL)
@@ -362,3 +375,96 @@ async def import_items(file: UploadFile = File(...)):
             await database.execute(query, item)
 
     return {"message": f"Successfully imported {len(items_to_insert)} items."}
+
+from fastapi import Form
+from PIL import Image
+
+@app.post("/api/generate-description")
+async def generate_description(notes: str = Form(...), image: Optional[UploadFile] = File(None)):
+    
+    try:
+        model_prompt = [
+            "Jesteś ekspertem w tworzeniu chwytliwych i zwięzłych opisów produktów na platformę Vinted.",
+            "Na podstawie poniższych uwag i/lub załączonego zdjęcia, wygeneruj krótki tytuł oraz opis produktu z hashtagami.",
+            f"Uwagi: {notes}" if notes else "Brak dodatkowych uwag.",
+            "Odpowiedź zwróć w formacie JSON, zawierającym klucze 'title' i 'description'."
+            "Nie uzywaj słowa Sprzedam!, ma byc to sam opis. Nie uzywaj emotek. Wymiary maja byc w ciagu, tak jak opis."
+        ]
+
+        if image:
+            try:
+                img = Image.open(io.BytesIO(await image.read()))
+                model_prompt.append(img)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Nie udało się przetworzyć obrazu: {e}")
+
+        model = genai.GenerativeModel('gemini-2.5-pro')
+        response = model.generate_content(model_prompt)
+        
+        response_text = response.text.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text[7:-4].strip()
+            
+        return json.loads(response_text)
+
+    except Exception as e:
+        print(f"Error during description generation: {e}")
+        raise HTTPException(status_code=500, detail=f"Błąd podczas generowania opisu: {e}")
+
+@app.post("/api/generate-image")
+async def generate_image(image: UploadFile = File(...)):
+    try:
+        image_bytes = await image.read()
+        base64_image = base64.b64encode(image_bytes).decode('utf-8')
+
+        # Step 1: Get a description of the image using GPT-4 Vision
+        description_prompt = "Describe the clothing item in this image in detail, focusing on its type, color, pattern, and style. Be concise and accurate. This description will be used to generate a new image."
+        
+        description_response = client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": description_prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=100
+        )
+        
+        image_description = description_response.choices[0].message.content
+
+       
+        generation_prompt = (
+    f"Generate a highly realistic photograph of a fashion model wearing the following item: {image_description}. "
+    "The model should be standing or sitting in a casual, natural pose, as if in a real-life setting. "
+    "The clothing must appear naturally worn, with realistic folds, draping, and textures, showing how it fits on a real person. "
+    "The background should be simple and non-distracting, such as a clean indoor room, minimalist outdoor area, or neutral wall. "
+    "Use bright, natural lighting that highlights the details, colors, and fabric of the clothing. "
+    "The model's proportions, facial features, and posture should be realistic. "
+    "The image must look like an authentic photograph, not a digital render or illustration."
+)
+
+
+        image_response = client.images.generate(
+            model="dall-e-3",
+            prompt=generation_prompt,
+            n=1,
+            size="1024x1024",
+            response_format="url",
+        )
+        
+        image_url = image_response.data[0].url
+
+        return {"imageUrl": image_url}
+
+    except Exception as e:
+        print(f"Error during image generation: {e}")
+        raise HTTPException(status_code=500, detail=f"Błąd podczas generowania obrazu: {e}")

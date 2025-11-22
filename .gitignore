@@ -24,3 +24,7 @@ venv/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Secrets
+server/openai_api_key.txt
+server/.env
