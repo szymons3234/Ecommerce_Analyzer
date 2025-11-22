@@ -1,0 +1,37 @@
+.ai-agent-page {
+    padding: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+  }
+  
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .image-preview {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+  }
+  
+  .generated-content {
+    margin-top: 2rem;
+  }
+  
+  .generated-item {
+    margin-bottom: 1.5rem;
+  }
+  
+  .copy-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .generated-image {
+    max-width: 100%;
+    border-radius: 8px;
+  }
